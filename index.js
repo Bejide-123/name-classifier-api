@@ -3,10 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(cors());
-
 
 app.get('/api/classify', async (req, res) => {
   try {
@@ -38,42 +35,40 @@ app.get('/api/classify', async (req, res) => {
     
     const isConfident = (data.probability >= 0.7 && data.count >= 100);
     
-    const result = {
+    res.json({
       status: 'success',
       data: {
         name: name,
         gender: data.gender,
         probability: data.probability,
-        sample_size: data.count,  
+        sample_size: data.count,
         is_confident: isConfident,
-        processed_at: new Date().toISOString()  
+        processed_at: new Date().toISOString()
       }
-    };
-    
-    res.status(200).json(result);
+    });
     
   } catch (error) {
-    console.error('Error:', error.message);
-    
     if (error.response) {
       res.status(502).json({
         status: 'error',
         message: 'Upstream API failure'
       });
-    } else if (error.request) {
-      res.status(500).json({
-        status: 'error',
-        message: 'Server failure'
-      });
     } else {
       res.status(500).json({
         status: 'error',
-        message: 'Internal server error'
+        message: 'Server failure'
       });
     }
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+module.exports = app;
+
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
